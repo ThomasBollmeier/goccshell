@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/chzyer/readline"
 	"os"
 	"os/exec"
@@ -8,21 +9,46 @@ import (
 )
 
 func main() {
-	input, err := prompt()
-	if err != nil {
-		panic(err)
+
+	for {
+		input, err := prompt()
+		if err != nil {
+			continue
+		}
+		result := handleInput(input)
+		if result == exit {
+			break
+		}
 	}
-	handleInput(input)
+
+	os.Exit(0)
 }
 
-func handleInput(input string) bool {
+type handleResult int
+
+const (
+	exit handleResult = iota
+	cont
+)
+
+func handleInput(input string) handleResult {
+
+	if input == "exit" {
+		return exit
+	}
+
 	parts := strings.Split(input, " ")
-	cmd := exec.Command(parts[0], parts[1:]...)
+	command := parts[0]
+	args := parts[1:]
+	cmd := exec.Command(command, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, err)
+	}
 
-	return err == nil
+	return cont
 }
 
 func prompt() (string, error) {
@@ -30,6 +56,6 @@ func prompt() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	command = strings.TrimRight(command, " \n")
+	command = strings.TrimSpace(command)
 	return command, nil
 }
