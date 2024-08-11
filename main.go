@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/chzyer/readline"
 	"os"
@@ -57,5 +58,10 @@ func prompt() (string, error) {
 		return "", err
 	}
 	command = strings.TrimSpace(command)
-	return command, nil
+	if command != "" {
+		return command, nil
+	} else {
+		return "", errors.New("empty command")
+	}
+
 }
