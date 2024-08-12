@@ -34,13 +34,14 @@ const (
 
 func handleInput(input string) handleResult {
 
-	if input == "exit" {
+	parts := strings.Fields(input)
+	command := parts[0]
+	args := parts[1:]
+
+	if command == "exit" {
 		return exit
 	}
 
-	parts := strings.Split(input, " ")
-	command := parts[0]
-	args := parts[1:]
 	cmd := exec.Command(command, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
