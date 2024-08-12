@@ -9,7 +9,11 @@ import (
 	"strings"
 )
 
+var curDir string
+
 func main() {
+
+	curDir, _ = os.Getwd()
 
 	for {
 		input, err := prompt()
@@ -38,8 +42,12 @@ func handleInput(input string) handleResult {
 	command := parts[0]
 	args := parts[1:]
 
-	if command == "exit" {
-		return exit
+	if isBuiltIn(command) {
+		result, err := handleBuiltin(command, args)
+		if err != nil {
+			panic(err)
+		}
+		return result
 	}
 
 	cmd := exec.Command(command, args...)
@@ -51,6 +59,40 @@ func handleInput(input string) handleResult {
 	}
 
 	return cont
+}
+
+func handleBuiltin(command string, args []string) (handleResult, error) {
+	switch command {
+	case "exit":
+		return exit, nil
+	case "cd":
+		var newDir string
+		if len(args) > 0 {
+			newDir = args[0]
+		} else {
+			newDir, _ = os.UserHomeDir()
+		}
+		err := os.Chdir(newDir)
+		if err == nil {
+			curDir, _ = os.Getwd()
+		}
+		return cont, nil
+	case "pwd":
+		fmt.Println(curDir)
+		return cont, nil
+	default:
+		return -1, errors.New("unknown command: " + command)
+	}
+
+}
+
+func isBuiltIn(command string) bool {
+	switch command {
+	case "exit", "cd", "pwd":
+		return true
+	default:
+		return false
+	}
 }
 
 func prompt() (string, error) {
